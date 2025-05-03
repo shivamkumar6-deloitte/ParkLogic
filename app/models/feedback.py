@@ -13,7 +13,7 @@ class Feedback(Base):
     spot_id = Column(Integer, ForeignKey("spot.id"), nullable=True)
     rating = Column(Integer)
     comment = Column(Text)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.now(datetime.UTC))
 
     user = relationship("User", back_populates="feedbacks")
     parking_lot = relationship("ParkingLot", back_populates="feedbacks")
