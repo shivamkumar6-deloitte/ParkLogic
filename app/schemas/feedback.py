@@ -16,7 +16,7 @@ class FeedbackOut(BaseModel):
     spot_id: int = None
     rating: int
     comment: str
-    created_at: str  # You can use str for simplicity, or datetime if you want
+    created_at: str
 
     class Config:
         orm_mode = True

@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-# --- Parking Lot Schemas ---
+#  Parking Lot Schemas
 
 class ParkingLotCreate(BaseModel):
     name: str
@@ -14,7 +14,7 @@ class ParkingLotOut(BaseModel):
     class Config:
         orm_mode = True
 
-# --- Floor Schemas ---
+#  Floor Schemas
 
 class FloorCreate(BaseModel):
     parking_lot_id: int
@@ -28,7 +28,7 @@ class FloorOut(BaseModel):
     class Config:
         orm_mode = True
 
-# --- Spot Schemas ---
+#Spot Schemas
 
 class SpotCreate(BaseModel):
     floor_id: int

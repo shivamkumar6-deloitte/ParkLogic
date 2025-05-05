@@ -1,18 +1,18 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from typing import List
+from fastapi import APIRouter, HTTPException, status, Depends
+from typing import List, Annotated
 from sqlalchemy.orm import Session
-from app.database import SessionLocal
 from app.models.parkinglot import ParkingLot
 from app.schemas.parkinglot import ParkingLotCreate, ParkingLotOut
+from app.database import SessionLocal
 from app.routers.auth import get_current_user
-from typing import Annotated
 
+# i changed all the async to normal because i learned that normal SQLAlchemy orm is not async
 router = APIRouter(
     prefix="/parkinglot",
     tags=["parkinglot"]
 )
 
-# Dependency to get DB session
+#  the db dependency func
 def get_db():
     db = SessionLocal()
     try:
@@ -20,14 +20,15 @@ def get_db():
     finally:
         db.close()
 
+db_dependency = Annotated[Session, Depends(get_db)]
 user_dependency = Annotated[dict, Depends(get_current_user)]
 
 # Create a parking lot (admin only)
-@router.post("/", response_model=ParkingLotOut)
+@router.post("/", response_model=ParkingLotOut, description="Admin only")
 def create_parking_lot(
     lot: ParkingLotCreate,
-    db: Session = Depends(get_db),
-    user: user_dependency = Depends()
+    db: db_dependency,
+    user: user_dependency
 ):
     if user is None or user.get('role') != 'admin':
         raise HTTPException(status_code=403, detail="Admins only")
@@ -38,20 +39,20 @@ def create_parking_lot(
     return db_lot
 
 # List all parking lots (anyone)
-@router.get("/", response_model=List[ParkingLotOut])
+@router.get("/", response_model=List[ParkingLotOut], description="All Users allowed")
 def get_parking_lots(
-    db: Session = Depends(get_db),
-    user: user_dependency = Depends()
+    db: db_dependency,
+    user: user_dependency
 ):
     lots = db.query(ParkingLot).all()
     return lots
 
 # Get a parking lot by id (anyone)
-@router.get("/{lot_id}", response_model=ParkingLotOut)
+@router.get("/{lot_id}", response_model=ParkingLotOut, description="Admin only")
 def get_parking_lot(
     lot_id: int,
-    db: Session = Depends(get_db),
-    user: user_dependency = Depends()
+    db: db_dependency,
+    user: user_dependency
 ):
     lot = db.query(ParkingLot).filter(ParkingLot.id == lot_id).first()
     if not lot:
@@ -59,12 +60,12 @@ def get_parking_lot(
     return lot
 
 # Update a parking lot (admin only)
-@router.put("/{lot_id}", response_model=ParkingLotOut)
+@router.put("/{lot_id}", response_model=ParkingLotOut, description="Admin only")
 def update_parking_lot(
     lot_id: int,
     lot: ParkingLotCreate,
-    db: Session = Depends(get_db),
-    user: user_dependency = Depends()
+    db: db_dependency,
+    user: user_dependency
 ):
     if user is None or user.get('role') != 'admin':
         raise HTTPException(status_code=403, detail="Admins only")
@@ -78,11 +79,11 @@ def update_parking_lot(
     return db_lot
 
 # Delete a parking lot (admin only)
-@router.delete("/{lot_id}")
+@router.delete("/{lot_id}", description="Admin only")
 def delete_parking_lot(
     lot_id: int,
-    db: Session = Depends(get_db),
-    user: user_dependency = Depends()
+    db: db_dependency,
+    user: user_dependency
 ):
     if user is None or user.get('role') != 'admin':
         raise HTTPException(status_code=403, detail="Admins only")
